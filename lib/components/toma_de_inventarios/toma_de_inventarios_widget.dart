@@ -14,17 +14,14 @@ import '../../flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Formateador de texto para agregar comas automáticamente
 class CommaTextInputFormatter extends TextInputFormatter {
   final NumberFormat _formatter = NumberFormat("#,##0");
 
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    // Intentamos convertir el texto ingresado a un número sin las comas.
     String newText = newValue.text.replaceAll(',', '');
     if (newText.isNotEmpty) {
-      // Formateamos el número con comas de nuevo.
       double parsedValue = double.tryParse(newText) ?? 0.0;
       String formattedValue = _formatter.format(parsedValue);
       return TextEditingValue(
@@ -73,11 +70,9 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
   _busqueda() {
     FocusManager.instance.primaryFocus?.unfocus();
     if (folioProcesoController.value.text.isNotEmpty) {
-      // Eliminar las comas antes de convertir a entero
       String cleanedText =
           folioProcesoController.value.text.replaceAll(",", "");
 
-      // Verificar que el valor es un número
       if (int.tryParse(cleanedText) != null) {
         showDialog(
           context: context,
@@ -128,7 +123,6 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
           MensajesProvider.mensajeExtendido(context, "Error", error.toString());
         });
       } else {
-        // Mostrar un mensaje si el valor no es un número válido
         MensajesProvider.mensaje(context, 'Folio de proceso no válido');
       }
     }
@@ -136,25 +130,22 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
 
   _capturaArticulos() async {
     if (detallesTomas.isNotEmpty) {
-      // Eliminar las comas antes de convertir a entero
       String cleanedText =
           folioProcesoController.value.text.replaceAll(",", "");
 
-      // Verificar que el valor es un número
       if (int.tryParse(cleanedText) != null) {
         bool capturada = await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => CapturaArticulosWidget(
                     usuario: widget.usuario,
-                    toma: int.parse(cleanedText), // Usamos el valor limpio
+                    toma: int.parse(cleanedText),
                     detallesTomas: detallesTomas)));
         if (capturada != null && capturada) {
           MensajesProvider.mensaje(context, 'Detalles subidos con éxito');
           _limpiar();
         }
       } else {
-        // Mostrar un mensaje si el valor no es un número válido
         Fluttertoast.showToast(
             msg: "Folio de proceso no válido",
             toastLength: Toast.LENGTH_SHORT,
@@ -270,9 +261,8 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                             enabled: folioEnabled,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
-                              FilteringTextInputFormatter
-                                  .digitsOnly, // Aseguramos que solo se ingresen dígitos
-                              CommaTextInputFormatter(), // Aplicamos el formateo con comas
+                              FilteringTextInputFormatter.digitsOnly,
+                              CommaTextInputFormatter(),
                             ],
                             decoration: InputDecoration(
                               hintText: 'Escribe el folio de proceso aquí',

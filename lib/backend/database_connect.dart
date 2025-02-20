@@ -92,7 +92,7 @@ class DatabaseProvider {
     return parsed.map<user>((json) => user.fromJson(json)).toList();
   }
 
-//----------------------------------------------------------
+  //----------------------------------------------------------
   // SECCION DE TOMA DE INVENTARIOS
   //----------------------------------------------------------
   static Future<List<dynamic>> getTomasInventarios(
@@ -105,7 +105,7 @@ class DatabaseProvider {
       'toma': toma,
       'usuario': usuario
     };
-    //encode Map to JSON
+
     var body = json.encode(data);
     var response = await http.post(Uri.parse(ROOT),
         headers: {"Content-Type": "application/json"}, body: body);

@@ -12,7 +12,6 @@ import '../../flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-
 import '../../flutter_flow/flutter_flow_util.dart';
 import '../scan_event_widget.dart';
 
@@ -28,60 +27,91 @@ class CapturaArticulosWidget extends StatefulWidget {
   _CapturaArticulosWidgetState createState() => _CapturaArticulosWidgetState();
 }
 
-class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
-    with TickerProviderStateMixin {
+class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
   TextEditingController articuloController, cantidadController;
   CarouselController carruselController = CarouselController();
   int carruselIndex = 0;
   String cDetalles = "";
   bool buscando = false;
 
-  double cantidadGuardadaAnterior = 0;
+  double cantidadTotal = 0;
 
   @override
   void dispose() {
     super.dispose();
   }
 
+  List<TextEditingController> cantidadControllers = [];
+
   @override
   void initState() {
     super.initState();
-    articuloController = TextEditingController();
-    cantidadController = TextEditingController();
-    cantidadController.text = NumberFormat("#,###,###")
-        .format(widget.detallesTomas[carruselIndex].cantidad);
 
-    // Restablecer la cantidad de cada artículo a 0 al volver a la toma
+    // Inicializa un TextEditingController por cada artículo.
+    cantidadControllers = widget.detallesTomas
+        .map((articulo) => TextEditingController(text: '0'))
+        .toList();
+
+    _calcularCantidadTotal();
+  }
+
+  _calcularCantidadTotal() {
+    cantidadTotal = 0;
     widget.detallesTomas.forEach((articulo) {
-      articulo.cantidad = 0; // Restablecer la cantidad a 0
+      cantidadTotal += articulo.cantidad;
     });
-
-    cantidadController.text = NumberFormat("#,###,###")
-        .format(widget.detallesTomas[carruselIndex].cantidad);
   }
 
-  _aumentaCantidad() async {
-    if (cantidadController.value.text.isEmpty) {
-      this.cantidadController.text = "1";
-    } else {
-      this.cantidadController.text =
-          (int.parse(this.cantidadController.text) + 1).toString();
-    }
-    widget.detallesTomas[carruselIndex].cantidad =
-        double.parse(this.cantidadController.text);
+  _aumentaCantidad() {
+    setState(() {
+      int count = int.parse(cantidadControllers[carruselIndex].text);
+      cantidadControllers[carruselIndex].text = (count + 1).toString();
+    });
   }
 
-  _disminuyeCantidad() async {
-    if (cantidadController.value.text.isNotEmpty) {
-      if (int.parse(this.cantidadController.text) != 0) {
-        this.cantidadController.text =
-            (int.parse(this.cantidadController.text) - 1).toString();
-        widget.detallesTomas[carruselIndex].cantidad =
-            double.parse(this.cantidadController.text);
+  _disminuyeCantidad() {
+    if (cantidadControllers[carruselIndex].text.isNotEmpty) {
+      if (int.parse(cantidadControllers[carruselIndex].text) != 0) {
+        setState(() {
+          int count = int.parse(cantidadControllers[carruselIndex].text);
+          cantidadControllers[carruselIndex].text = (count - 1).toString();
+        });
       }
     }
+  }
+
+  _guardarCapturaDeArticulos() async {
+    widget.detallesTomas.forEach((articulo) {
+      double contador = double.parse(
+          cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
+      articulo.cantidad += contador;
+
+      cDetalles += articulo.clave_articulo.toString() + "|";
+      cDetalles += articulo.cantidad.toInt().toString() + "|";
+      cDetalles += articulo.cantidad_mal_estado.toInt().toString() + "|";
+      cDetalles += articulo.piezas.toInt().toString() + "|";
+      cDetalles += articulo.piezas_mal_estado.toInt().toString() + "Ç";
+    });
+
+    setState(() {
+      cantidadControllers.forEach(
+          (controller) => controller.text = '0'); // Reiniciar los controladores
+    });
+
+    DatabaseProvider.guardaTomaInventario(
+            widget.toma, widget.usuario.usuario, cDetalles)
+        .then((value) {
+      if (value) {
+        Navigator.pop(context, true);
+      } else {
+        MensajesProvider.mensaje(context, 'Ocurrió un error');
+      }
+    }).onError((error, stackTrace) {
+      print(error);
+      print(stackTrace);
+      MensajesProvider.mensajeExtendido(context, "Error", error.toString());
+    });
   }
 
   _busqueda() {
@@ -121,93 +151,52 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
     }
   }
 
-  _guardarCapturaDeArticulos() async {
-    widget.detallesTomas.forEach((articulo) {
-      // Actualizamos el último registro y la cantidad total
-      articulo.ultimo_registro = articulo
-          .cantidad; // Guardamos la cantidad registrada como último registro
-      articulo.cantidad_total = (articulo.ultimo_registro +
-          articulo
-              .cantidad); // Sumamos el último registro con la nueva cantidad
+_leerCodigoBarras() async {
+  await Permission.camera.request();
 
-      cDetalles += articulo.clave_articulo.toString() + "|";
-      cDetalles += articulo.cantidad.toInt().toString() + "|";
-      cDetalles += articulo.cantidad_mal_estado.toInt().toString() + "|";
-      cDetalles += articulo.piezas.toInt().toString() + "|";
-      cDetalles += articulo.piezas_mal_estado.toInt().toString() + "Ç";
-    });
-
-    // Guardamos la toma en la base de datos
-    DatabaseProvider.guardaTomaInventario(
-            widget.toma, widget.usuario.usuario, cDetalles)
-        .then((value) {
-      if (value) {
-        Navigator.pop(context, true);
-      } else {
-        MensajesProvider.mensaje(context, 'Ocurrió un error');
-      }
-    }).onError((error, stackTrace) {
-      print(error);
-      print(stackTrace);
-      MensajesProvider.mensajeExtendido(context, "Error", error.toString());
-    });
-  }
-
-  _leerCodigoBarras() async {
-    // Solicitar permiso para la cámara
-    await Permission.camera.request();
-
-    // Iniciar la lectura del código de barras
-    var barcode = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScanEventWidget(
-          usuario: widget.usuario,
-        ),
+  var barcode = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ScanEventWidget(
+        usuario: widget.usuario,
       ),
-    );
+    ),
+  );
 
-    int index = 0;
-    bool encontrado = false;
+  int index = 0;
+  bool encontrado = false;
 
-    // Verificamos si el código de barras no es nulo
-    if (barcode != null) {
-      widget.detallesTomas.forEach((articulo) {
-        // Compara el código de barras escaneado con los datos de los artículos
-        if (articulo.clave_articulo.toString().contains(barcode) ||
-            articulo.articulo.toUpperCase().contains(barcode) ||
-            articulo.clave_anterior.toUpperCase().contains(barcode)) {
-          // Artículo encontrado, actualizamos la cantidad
-          setState(() {
-            // Aumenta la cantidad en 1, o puedes modificarlo según sea necesario
-            articulo.cantidad += 1;
-            // Refleja la actualización en el controlador de cantidad
-            cantidadController.text =
-                NumberFormat("#,###,###").format(articulo.cantidad);
-          });
+  if (barcode != null) {
+    widget.detallesTomas.forEach((articulo) {
+      if (articulo.clave_articulo.toString().contains(barcode) ||
+          articulo.articulo.toUpperCase().contains(barcode) ||
+          articulo.clave_anterior.toUpperCase().contains(barcode)) {
+        setState(() {
+          // Aquí actualizamos solo el contador del artículo correspondiente
+          int count = int.parse(cantidadControllers[index].text);
+          cantidadControllers[index].text = (count + 1).toString();
+        });
 
-          // Cambia al carrusel de ese artículo
-          carruselController.jumpToPage(index);
-          encontrado = true;
-        }
-        index++;
-      });
-
-      // Si no se encuentra el artículo, mostramos un mensaje
-      if (!encontrado) {
-        Fluttertoast.showToast(
-          msg: "El artículo no existe en la Toma de Inventario",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-        );
+        // Marcar que se encontró el artículo y salir del ciclo
+        carruselController.jumpToPage(index);
+        encontrado = true;
       }
-    } else {
-      // Si la lectura fue cancelada, mostramos un mensaje
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Busqueda cancelada."),
-      ));
+      index++;
+    });
+
+    if (!encontrado) {
+      Fluttertoast.showToast(
+        msg: "El artículo no existe en la Toma de Inventario",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+      );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Busqueda cancelada."),
+    ));
   }
+}
 
   _openBusquedaDeArticulos() {
     print(widget.detallesTomas[carruselIndex].articulo);
@@ -257,7 +246,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                 },
                 onSelected: (value) {
                   if (value == 1) {
-                    //Ver articulo
                     _openBusquedaDeArticulos();
                   }
                 }),
@@ -282,10 +270,9 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
-                    // Barra de búsqueda ajustada
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 5), // Margen horizontal
+                          horizontal: 20, vertical: 5),
                       child: TextFormField(
                         onChanged: (value) {
                           _busqueda();
@@ -301,7 +288,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                           ),
                           prefixIcon: Icon(Icons.search, color: Colors.orange),
                           filled: true,
-                          fillColor: Color(0xFFF4F4F4), // Color de fondo claro
+                          fillColor: Color(0xFFF4F4F4),
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
                               width: 1,
@@ -322,8 +309,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                         ),
                       ),
                     ),
-
-                    // List ade resultados
                     ListView.builder(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 1),
@@ -374,9 +359,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                           }
                           return Container();
                         }),
-
                     SizedBox(height: 20),
-
                     CarouselSlider(
                       carouselController: carruselController,
                       options: CarouselOptions(
@@ -386,9 +369,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                         onPageChanged: (index, reason) {
                           setState(() {
                             carruselIndex = index;
-                            cantidadController.text = NumberFormat("#,###,###")
-                                .format(widget
-                                    .detallesTomas[carruselIndex].cantidad);
                           });
                         },
                       ),
@@ -420,23 +400,22 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.grey)),
                                     SizedBox(height: 20),
-
-                                    // Mostrar la unidad seguida de "totes"
                                     Text(
-                                      "${i.nombre_unidad}",
+                                      "Última cantidad: ${i.ultimo_registro.toInt()} ${i.nombre_unidad}",
                                       style: TextStyle(
-                                          fontSize: 16, color: Colors.black),
+                                        fontSize: 16.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                    SizedBox(height: 10),
-
-                                    // Contenedor para los botones de aumento y disminución
+                                    SizedBox(height: 20),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
                                         FloatingActionButton(
                                           onPressed: () {
-                                            _disminuyeCantidad(); // Cambié esto para pasar el artículo
+                                            _disminuyeCantidad();
                                           },
                                           child: Icon(Icons.remove),
                                           backgroundColor: Color(0xFFF57C00),
@@ -444,15 +423,8 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                                         Container(
                                           width: 80,
                                           child: TextFormField(
-                                            onChanged: (value) {
-                                              widget
-                                                      .detallesTomas[carruselIndex]
-                                                      .cantidad =
-                                                  double.parse(this
-                                                      .cantidadController
-                                                      .text);
-                                            },
-                                            controller: cantidadController,
+                                            controller: cantidadControllers[
+                                                carruselIndex], // Usar el controlador correspondiente
                                             keyboardType: TextInputType.number,
                                             inputFormatters: <
                                                 TextInputFormatter>[
@@ -466,11 +438,12 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                                                       horizontal: 10),
                                             ),
                                             textAlign: TextAlign.center,
+                                            readOnly: false,
                                           ),
                                         ),
                                         FloatingActionButton(
                                           onPressed: () {
-                                            _aumentaCantidad(); // Cambié esto también para pasar el artículo
+                                            _aumentaCantidad();
                                           },
                                           child: Icon(Icons.add),
                                           backgroundColor: Color(0xFFF57C00),
@@ -479,18 +452,11 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                                     ),
                                     Spacer(),
                                     Text(
-                                      "Último registro: ${(i.ultimo_registro ?? 0).toInt()} ${i.nombre_unidad}",
+                                      "Cantidad total: ${widget.detallesTomas[carruselIndex].cantidad.toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
                                       style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[600]),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      "Existencia Total: ${(i.cantidad_total ?? 0).toInt()} ${i.nombre_unidad}",
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 16.5,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.grey[600],
                                       ),
                                     ),
                                   ],
@@ -508,14 +474,11 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
           ),
         ),
         floatingActionButton: Align(
-          alignment: Alignment
-              .topRight, // Alinea los botones en la esquina superior derecha
+          alignment: Alignment.topRight,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment:
-                CrossAxisAlignment.end, // Alinea los botones a la derecha
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Botón "Leer Artículo"
               FloatingActionButton(
                 heroTag: "leeArticulo",
                 onPressed: () {
@@ -525,15 +488,14 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget>
                 tooltip: "Leer código de barras",
                 child: const Icon(FontAwesomeIcons.barcode),
               ),
-              SizedBox(height: 10), // Espacio entre los botones
-              // Botón "Guardar"
+              SizedBox(height: 10),
               FloatingActionButton(
                 heroTag: "guardaCaptura",
                 onPressed: () {
                   _guardarCapturaDeArticulos();
                 },
                 backgroundColor: Color.fromARGB(255, 243, 124, 33),
-                tooltip: "Guardar",
+                tooltip: "Guardar captura",
                 child: const Icon(Icons.save),
               ),
             ],

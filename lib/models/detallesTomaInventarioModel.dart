@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class detallesTomaInventario {
   int clave_articulo;
   String clave_anterior;
@@ -7,13 +9,16 @@ class detallesTomaInventario {
   String nombre_unidad;
   String nombre_unidad_alterna;
   double cantidad;
-  double cantidad_total;
   double cantidad_mal_estado;
   double piezas;
   double piezas_mal_estado;
   double cantidad_comprometida;
-  double ultimo_registro; // La última cantidad agregada
+  double ultimo_registro;
   bool busqueda;
+  double cantidadTotal;
+  
+  // Nuevo campo para el TextEditingController
+  TextEditingController cantidadController;
 
   detallesTomaInventario({
     this.clave_articulo,
@@ -23,15 +28,18 @@ class detallesTomaInventario {
     this.nombre_ubicacion,
     this.nombre_unidad,
     this.nombre_unidad_alterna,
-    this.cantidad = 0.0,  // Valor predeterminado para cantidad
-    this.cantidad_total = 0.0,  // Valor predeterminado
-    this.cantidad_mal_estado = 0.0,
-    this.piezas = 0.0,
-    this.piezas_mal_estado = 0.0,
-    this.cantidad_comprometida = 0.0,
-    this.ultimo_registro = 0.0,
-    this.busqueda = true,  // Si no se pasa, por defecto es true
-  });
+    this.cantidad = 0,
+    this.cantidad_mal_estado = 0,
+    this.piezas = 0,
+    this.piezas_mal_estado = 0,
+    this.cantidad_comprometida = 0,
+    this.ultimo_registro = 0,
+    this.busqueda = true,
+    this.cantidadTotal = 0,
+  }) {
+    // Inicializar el controlador de cantidad con el valor de cantidad
+    cantidadController = TextEditingController(text: cantidad.toString());
+  }
 
   factory detallesTomaInventario.fromJson(Map<String, dynamic> json) {
     return detallesTomaInventario(
@@ -43,17 +51,16 @@ class detallesTomaInventario {
       nombre_unidad: json['nombre_unidad'] as String,
       nombre_unidad_alterna: json['nombre_unidad_alterna'] as String,
       cantidad: double.tryParse(json['cantidad'].toString()) ?? 0.0,
-      cantidad_total: double.tryParse(json['cantidad_total'].toString()) ?? 0.0,
       cantidad_mal_estado: double.tryParse(json['cantidad_mal_estado'].toString()) ?? 0.0,
       piezas: double.tryParse(json['piezas'].toString()) ?? 0.0,
       piezas_mal_estado: double.tryParse(json['piezas_mal_estado'].toString()) ?? 0.0,
       cantidad_comprometida: double.tryParse(json['cantidad_comprometida'].toString()) ?? 0.0,
       ultimo_registro: double.tryParse(json['ultimo_registro'].toString()) ?? 0.0,
-      busqueda: true,  // Por defecto
-    );
+      busqueda: true, // Por defecto
+      cantidadTotal: double.tryParse(json['cantidadTotal'].toString()) ?? 0.0,
+    )..cantidadController = TextEditingController(text: json['cantidad'].toString());  // Inicializar el controlador
   }
 
-  // Método para convertir a JSON
   Map<String, dynamic> toJson() {
     return {
       'clave_articulo': clave_articulo,
@@ -64,24 +71,21 @@ class detallesTomaInventario {
       'nombre_unidad': nombre_unidad,
       'nombre_unidad_alterna': nombre_unidad_alterna,
       'cantidad': cantidad,
-      'cantidad_total': cantidad_total,
       'cantidad_mal_estado': cantidad_mal_estado,
       'piezas': piezas,
       'piezas_mal_estado': piezas_mal_estado,
       'cantidad_comprometida': cantidad_comprometida,
       'ultimo_registro': ultimo_registro,
       'busqueda': busqueda,
+      'cantidadTotal': cantidadTotal,
     };
   }
 
-  // Métodos adicionales para actualizar las cantidades
-  void incrementarCantidad(double cantidad) {
-    this.cantidad += cantidad;
+  void calcularUltimoRegistro() {
+    this.ultimo_registro = this.cantidad;
   }
 
-  void decrementarCantidad(double cantidad) {
-    if (this.cantidad - cantidad >= 0) {
-      this.cantidad -= cantidad;
-    }
+  void calcularCantidadTotal() {
+    this.cantidadTotal = this.ultimo_registro + this.cantidad;
   }
 }
