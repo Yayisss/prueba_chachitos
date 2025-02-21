@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,7 +11,6 @@ import '../../flutter_flow/flutter_flow_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../../flutter_flow/flutter_flow_util.dart';
 import '../scan_event_widget.dart';
 
 class CapturaArticulosWidget extends StatefulWidget {
@@ -48,23 +46,14 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   void initState() {
     super.initState();
 
-    // Inicializa un TextEditingController por cada artículo.
     cantidadControllers = widget.detallesTomas
         .map((articulo) => TextEditingController(text: '0'))
         .toList();
-
-    _calcularCantidadTotal();
-  }
-
-  _calcularCantidadTotal() {
-    cantidadTotal = 0;
-    widget.detallesTomas.forEach((articulo) {
-      cantidadTotal += articulo.cantidad;
-    });
   }
 
   _aumentaCantidad() {
     setState(() {
+      // Actualizamos el controlador
       int count = int.parse(cantidadControllers[carruselIndex].text);
       cantidadControllers[carruselIndex].text = (count + 1).toString();
     });
@@ -74,6 +63,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     if (cantidadControllers[carruselIndex].text.isNotEmpty) {
       if (int.parse(cantidadControllers[carruselIndex].text) != 0) {
         setState(() {
+          // Actualizamos el controlador
           int count = int.parse(cantidadControllers[carruselIndex].text);
           cantidadControllers[carruselIndex].text = (count - 1).toString();
         });
@@ -151,52 +141,56 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     }
   }
 
-_leerCodigoBarras() async {
-  await Permission.camera.request();
+  _leerCodigoBarras() async {
+    await Permission.camera.request();
 
-  var barcode = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ScanEventWidget(
-        usuario: widget.usuario,
+    var barcode = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanEventWidget(
+          usuario: widget.usuario,
+        ),
       ),
-    ),
-  );
+    );
 
-  int index = 0;
-  bool encontrado = false;
+    int index = 0;
+    bool encontrado = false;
 
-  if (barcode != null) {
-    widget.detallesTomas.forEach((articulo) {
-      if (articulo.clave_articulo.toString().contains(barcode) ||
-          articulo.articulo.toUpperCase().contains(barcode) ||
-          articulo.clave_anterior.toUpperCase().contains(barcode)) {
-        setState(() {
-          // Aquí actualizamos solo el contador del artículo correspondiente
-          int count = int.parse(cantidadControllers[index].text);
-          cantidadControllers[index].text = (count + 1).toString();
-        });
+    if (barcode != null) {
+      widget.detallesTomas.forEach((articulo) {
+        if (articulo.clave_articulo.toString().contains(barcode) ||
+            articulo.articulo.toUpperCase().contains(barcode) ||
+            articulo.clave_anterior.toUpperCase().contains(barcode)) {
+          // Encuentra el artículo y aumenta la cantidad
+          setState(() {
+            // Aumenta la cantidad en el controlador correspondiente
+            int count = int.parse(cantidadControllers[index].text);
+            cantidadControllers[index].text = (count + 1).toString();
 
-        // Marcar que se encontró el artículo y salir del ciclo
-        carruselController.jumpToPage(index);
-        encontrado = true;
+            // Incrementa la cantidad total
+            cantidadTotal += 1;
+          });
+
+          carruselController
+              .jumpToPage(index); // Mueve el carrusel al artículo encontrado
+          encontrado = true;
+        }
+        index++;
+      });
+
+      if (!encontrado) {
+        Fluttertoast.showToast(
+          msg: "El artículo no existe en la Toma de Inventario",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+        );
       }
-      index++;
-    });
-
-    if (!encontrado) {
-      Fluttertoast.showToast(
-        msg: "El artículo no existe en la Toma de Inventario",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Busqueda cancelada."),
+      ));
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Busqueda cancelada."),
-    ));
   }
-}
 
   _openBusquedaDeArticulos() {
     print(widget.detallesTomas[carruselIndex].articulo);
@@ -267,6 +261,7 @@ _leerCodigoBarras() async {
                     SizedBox(height: 10),
                   ])),
               Container(
+                height: MediaQuery.of(context).size.height,  // Altura fija de 300px
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
@@ -291,7 +286,7 @@ _leerCodigoBarras() async {
                           fillColor: Color(0xFFF4F4F4),
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
-                              width: 1,
+                              width: 100,
                               color: Colors.grey[300],
                             ),
                             borderRadius: BorderRadius.circular(25),
@@ -360,119 +355,144 @@ _leerCodigoBarras() async {
                           return Container();
                         }),
                     SizedBox(height: 20),
-                    CarouselSlider(
-                      carouselController: carruselController,
-                      options: CarouselOptions(
-                        height: 400.0,
-                        enlargeCenterPage: true,
-                        enableInfiniteScroll: false,
-                        onPageChanged: (index, reason) {
-                          setState(() {
-                            carruselIndex = index;
-                          });
-                        },
+                   CarouselSlider(
+  carouselController: carruselController,
+  options: CarouselOptions(
+    height: MediaQuery.of(context).size.height * 0.5,
+    enlargeCenterPage: true,
+    enableInfiniteScroll: false,
+    onPageChanged: (index, reason) {
+      setState(() {
+        carruselIndex = index;
+      });
+    },
+  ),
+  items: widget.detallesTomas.map((i) {
+    return Builder(
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Container(
+            padding: EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(i.articulo,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    )),
+                SizedBox(height: 5),
+                Text(i.nombre_articulo,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[600],
+                    )),
+                SizedBox(height: 20),
+                Text(
+                  "Último registro: ${widget.detallesTomas[carruselIndex].cantidad.toInt()}",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600]),
+                ),
+                SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FloatingActionButton(
+                      onPressed: () {
+                        _disminuyeCantidad();
+                      },
+                      child: Icon(Icons.remove),
+                      backgroundColor: Color(0xFFF57C00),
+                    ),
+                    SizedBox(width: 20),
+                    Container(
+                      width: 113,
+                      child: TextFormField(
+                        controller: cantidadControllers[carruselIndex],
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <
+                            TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        textAlign: TextAlign.center,
+                        readOnly: false,
                       ),
-                      items: widget.detallesTomas.map((i) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Container(
-                                padding: EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 10)
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(i.articulo,
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 5),
-                                    Text(i.nombre_articulo,
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey)),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "Última cantidad: ${i.ultimo_registro.toInt()} ${i.nombre_unidad}",
-                                      style: TextStyle(
-                                        fontSize: 16.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        FloatingActionButton(
-                                          onPressed: () {
-                                            _disminuyeCantidad();
-                                          },
-                                          child: Icon(Icons.remove),
-                                          backgroundColor: Color(0xFFF57C00),
-                                        ),
-                                        Container(
-                                          width: 80,
-                                          child: TextFormField(
-                                            controller: cantidadControllers[
-                                                carruselIndex], // Usar el controlador correspondiente
-                                            keyboardType: TextInputType.number,
-                                            inputFormatters: <
-                                                TextInputFormatter>[
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly
-                                            ],
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      horizontal: 10),
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            readOnly: false,
-                                          ),
-                                        ),
-                                        FloatingActionButton(
-                                          onPressed: () {
-                                            _aumentaCantidad();
-                                          },
-                                          child: Icon(Icons.add),
-                                          backgroundColor: Color(0xFFF57C00),
-                                        ),
-                                      ],
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      "Cantidad total: ${widget.detallesTomas[carruselIndex].cantidad.toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
-                                      style: TextStyle(
-                                        fontSize: 16.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    )
+                    ),
+                    SizedBox(width: 20),
+                    FloatingActionButton(
+                      onPressed: () {
+                        _aumentaCantidad();
+                      },
+                      child: Icon(Icons.add),
+                      backgroundColor: Color(0xFFF57C00),
+                    ),
                   ],
+                ),
+                SizedBox(height: 30), // Espacio para la cantidad total
+                // Mueve esta parte hacia el final de la tarjeta
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600],
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "Cantidad total: ",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextSpan(
+                          text:
+                              "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()}",
+                          style: TextStyle(
+                            color: Colors.green[600],
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }).toList(),
+)
+],
                 ),
               )
             ]),
           ),
         ),
+        
         floatingActionButton: Align(
           alignment: Alignment.topRight,
           child: Column(

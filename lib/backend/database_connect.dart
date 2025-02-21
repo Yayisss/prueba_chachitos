@@ -174,6 +174,7 @@ class DatabaseProvider {
       return false;
     }
   }
+  
   //----------------------------------------------------------
   // FIN DE SECCION DE TOMA DE INVENTARIOS
   //----------------------------------------------------------
@@ -506,6 +507,10 @@ class DatabaseProvider {
       return false;
     }
   }
+
+  static obtenerDetallesToma(int toma) {}
+
+  
   //----------------------------------------------------------
   // FIN DE SECCION DE CONFIGURACIÓN
   //----------------------------------------------------------
