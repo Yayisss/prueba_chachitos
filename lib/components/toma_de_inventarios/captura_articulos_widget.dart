@@ -467,7 +467,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
                         ),
                         TextSpan(
                           text:
-                              "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()}",
+                              "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
                           style: TextStyle(
                             color: Colors.green[600],
                             fontSize: 20,
