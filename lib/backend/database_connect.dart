@@ -152,13 +152,14 @@ class DatabaseProvider {
   }
 
   static Future<bool> guardaTomaInventario(
-      int toma, int usuario, String detalles) async {
+      int toma, int conteo, int usuario, String detalles) async {
     var preffs = await SharedPreferences.getInstance();
     String tempServer = preffs.getString("server");
     Map data = {
       'db_host': tempServer,
       'action': "guarda_detalles_toma",
       'toma': toma,
+      'conteo': conteo,
       'usuario': usuario,
       'detalles': detalles
     };
@@ -174,7 +175,7 @@ class DatabaseProvider {
       return false;
     }
   }
-  
+
   //----------------------------------------------------------
   // FIN DE SECCION DE TOMA DE INVENTARIOS
   //----------------------------------------------------------
@@ -510,7 +511,6 @@ class DatabaseProvider {
 
   static obtenerDetallesToma(int toma) {}
 
-  
   //----------------------------------------------------------
   // FIN DE SECCION DE CONFIGURACIÓN
   //----------------------------------------------------------

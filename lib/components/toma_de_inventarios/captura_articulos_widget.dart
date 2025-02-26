@@ -17,8 +17,9 @@ class CapturaArticulosWidget extends StatefulWidget {
   final user usuario;
   final int toma;
   final List<detallesTomaInventario> detallesTomas;
+  final int conteo;
   const CapturaArticulosWidget(
-      {Key key, this.usuario, this.toma, this.detallesTomas})
+      {Key key, this.usuario, this.toma, this.detallesTomas, this.conteo})
       : super(key: key);
 
   @override
@@ -90,7 +91,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     });
 
     DatabaseProvider.guardaTomaInventario(
-            widget.toma, widget.usuario.usuario, cDetalles)
+            widget.toma, widget.conteo ,widget.usuario.usuario, cDetalles)
         .then((value) {
       if (value) {
         Navigator.pop(context, true);
@@ -98,8 +99,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
         MensajesProvider.mensaje(context, 'Ocurrió un error');
       }
     }).onError((error, stackTrace) {
-      print(error);
-      print(stackTrace);
       MensajesProvider.mensajeExtendido(context, "Error", error.toString());
     });
   }
@@ -157,7 +156,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     bool encontrado = false;
 
     if (barcode != null) {
-      widget.detallesTomas.forEach((articulo) {
+      widget.detallesTomas..forEach((articulo) {
         if (articulo.clave_articulo.toString().contains(barcode) ||
             articulo.articulo.toUpperCase().contains(barcode) ||
             articulo.clave_anterior.toUpperCase().contains(barcode)) {
@@ -193,7 +192,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   }
 
   _openBusquedaDeArticulos() {
-    print(widget.detallesTomas[carruselIndex].articulo);
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -254,6 +252,14 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
                   padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
                   child: Column(children: [
                     Text(
+                      "Conteo: ${widget.conteo}",
+                      style: GoogleFonts.getFont('Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Color.fromARGB(255, 78, 76, 76)),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
                       "Desliza hacia los lados para navegar entre los artículos o busca un articulo mediante el cuadro de texto.",
                       style: GoogleFonts.getFont('Poppins',
                           fontSize: 13, color: Color.fromARGB(255, 78, 76, 76)),
@@ -261,7 +267,8 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
                     SizedBox(height: 10),
                   ])),
               Container(
-                height: MediaQuery.of(context).size.height,  // Altura fija de 300px
+                height:
+                    MediaQuery.of(context).size.height, // Altura fija de 300px
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
@@ -355,144 +362,150 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
                           return Container();
                         }),
                     SizedBox(height: 20),
-                   CarouselSlider(
-  carouselController: carruselController,
-  options: CarouselOptions(
-    height: MediaQuery.of(context).size.height * 0.5,
-    enlargeCenterPage: true,
-    enableInfiniteScroll: false,
-    onPageChanged: (index, reason) {
-      setState(() {
-        carruselIndex = index;
-      });
-    },
-  ),
-  items: widget.detallesTomas.map((i) {
-    return Builder(
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Container(
-            padding: EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(i.articulo,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    )),
-                SizedBox(height: 5),
-                Text(i.nombre_articulo,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey[600],
-                    )),
-                SizedBox(height: 20),
-                Text(
-                  "Último registro: ${widget.detallesTomas[carruselIndex].cantidad.toInt()}",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[600]),
-                ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FloatingActionButton(
-                      onPressed: () {
-                        _disminuyeCantidad();
-                      },
-                      child: Icon(Icons.remove),
-                      backgroundColor: Color(0xFFF57C00),
-                    ),
-                    SizedBox(width: 20),
-                    Container(
-                      width: 113,
-                      child: TextFormField(
-                        controller: cantidadControllers[carruselIndex],
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <
-                            TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                        textAlign: TextAlign.center,
-                        readOnly: false,
+                    CarouselSlider(
+                      carouselController: carruselController,
+                      options: CarouselOptions(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        enlargeCenterPage: true,
+                        enableInfiniteScroll: false,
+                        onPageChanged: (index, reason) {
+                          setState(() {
+                            carruselIndex = index;
+                          });
+                        },
                       ),
-                    ),
-                    SizedBox(width: 20),
-                    FloatingActionButton(
-                      onPressed: () {
-                        _aumentaCantidad();
-                      },
-                      child: Icon(Icons.add),
-                      backgroundColor: Color(0xFFF57C00),
-                    ),
+                      items: widget.detallesTomas.map((i) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Container(
+                                padding: EdgeInsets.all(18),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 12,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(i.articulo,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        )),
+                                    SizedBox(height: 5),
+                                    Text(i.nombre_articulo,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.grey[600],
+                                        )),
+                                    SizedBox(height: 20),
+                                    Text(
+                                      "Último registro: ${widget.detallesTomas[carruselIndex].cantidad.toInt()}",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[600]),
+                                    ),
+                                    SizedBox(height: 30),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        FloatingActionButton(
+                                          onPressed: () {
+                                            _disminuyeCantidad();
+                                          },
+                                          child: Icon(Icons.remove),
+                                          backgroundColor: Color(0xFFF57C00),
+                                        ),
+                                        SizedBox(width: 20),
+                                        Container(
+                                          width: 113,
+                                          child: TextFormField(
+                                            controller: cantidadControllers[
+                                                carruselIndex],
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: <
+                                                TextInputFormatter>[
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      horizontal: 8),
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            readOnly: false,
+                                          ),
+                                        ),
+                                        SizedBox(width: 20),
+                                        FloatingActionButton(
+                                          onPressed: () {
+                                            _aumentaCantidad();
+                                          },
+                                          child: Icon(Icons.add),
+                                          backgroundColor: Color(0xFFF57C00),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            30), // Espacio para la cantidad total
+                                    // Mueve esta parte hacia el final de la tarjeta
+                                    Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey[600],
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: "Cantidad total: ",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
+                                              style: TextStyle(
+                                                color: Colors.green[600],
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    )
                   ],
-                ),
-                SizedBox(height: 30), // Espacio para la cantidad total
-                // Mueve esta parte hacia el final de la tarjeta
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[600],
-                      ),
-                      children: [
-                        TextSpan(
-                          text: "Cantidad total: ",
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
-                          style: TextStyle(
-                            color: Colors.green[600],
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }).toList(),
-)
-],
                 ),
               )
             ]),
           ),
         ),
-        
         floatingActionButton: Align(
           alignment: Alignment.topRight,
           child: Column(

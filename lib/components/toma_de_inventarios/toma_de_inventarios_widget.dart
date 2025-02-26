@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -55,9 +57,11 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
   String narticulos = "";
   String conjunto = "";
   String tooltip = "Buscar";
+  int conteo = 1;
   Icon icono = Icon(Icons.done);
   Color folioColor = Colors.black;
   bool folioEnabled = true;
+  bool showConteo = false;
 
   NumberFormat numberFormat = NumberFormat("#,##0");
 
@@ -108,18 +112,15 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                           tomas_inventarios.first.total_articulos.toString()));
 
                   conjunto = "Conjunto: " + tomas_inventarios.first.conjunto;
+                  showConteo = true;
                 });
               } else {
                 MensajesProvider.mensaje(context,
                     'No se encontró o ya ha sido dado por terminado el folio de toma Inventario');
               }
-            } catch (e) {
-              print("Encontre un error");
-            }
+            } catch (e) {}
           });
         }).onError((error, stackTrace) {
-          print(error);
-          print(stackTrace);
           MensajesProvider.mensajeExtendido(context, "Error", error.toString());
         });
       } else {
@@ -140,7 +141,8 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                 builder: (context) => CapturaArticulosWidget(
                     usuario: widget.usuario,
                     toma: int.parse(cleanedText),
-                    detallesTomas: detallesTomas)));
+                    detallesTomas: detallesTomas,
+                    conteo: conteo)));
         if (capturada != null && capturada) {
           MensajesProvider.mensaje(context, 'Detalles subidos con éxito');
           _limpiar();
@@ -172,6 +174,7 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
       icono = Icon(Icons.done);
       folioColor = Colors.black;
       folioEnabled = true;
+      showConteo = false;
     });
   }
 
@@ -309,6 +312,37 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                             style: GoogleFonts.getFont('Poppins',
                                 fontSize: 16, color: Colors.black54),
                           ),
+                          SizedBox(height: 8),
+                          showConteo
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Selecciona el tipo de conteo:",
+                                      style: GoogleFonts.getFont('Poppins',
+                                          fontSize: 16),
+                                    ),
+                                    DropdownButton<int>(
+                                      value: conteo,
+                                      onChanged: (int newValue) {
+                                        setState(() {
+                                          conteo = newValue;
+                                        });
+                                      },
+                                      items: <int>[
+                                        1,
+                                        2
+                                      ].map<DropdownMenuItem<int>>((int value) {
+                                        return DropdownMenuItem<int>(
+                                          value: value,
+                                          child: Text('Conteo $value'),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    SizedBox(height: 15),
+                                  ],
+                                )
+                              : SizedBox(), 
                         ],
                       ),
                     ),
