@@ -72,27 +72,57 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     }
   }
 
-  _guardarCapturaDeArticulos() async {
-    widget.detallesTomas.forEach((articulo) {
-      double contador = double.parse(
-          cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
-      articulo.cantidad += contador;
+_guardarCapturaDeArticulos() async {
+  // Inicializamos las listas para conteo 1 y conteo 2
+  String cDetallesConteo1 = "";
+  String cDetallesConteo2 = "";
 
-      cDetalles += articulo.clave_articulo.toString() + "|";
-      cDetalles += articulo.cantidad.toInt().toString() + "|";
-      cDetalles += articulo.cantidad_mal_estado.toInt().toString() + "|";
-      cDetalles += articulo.piezas.toInt().toString() + "|";
-      cDetalles += articulo.piezas_mal_estado.toInt().toString() + "Ç";
-    });
+  widget.detallesTomas.forEach((articulo) {
+    double contador = double.parse(cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
+    articulo.cantidad += contador;
 
-    setState(() {
-      cantidadControllers.forEach(
-          (controller) => controller.text = '0'); // Reiniciar los controladores
-    });
+    // Dependiendo del conteo, guardamos en las listas correspondientes
+    if (widget.conteo == 1) {
+      // Guardar en lista de conteo 1
+      cDetallesConteo1 += articulo.clave_articulo.toString() + "|";
+      cDetallesConteo1 += articulo.cantidad.toInt().toString() + "|";
+      cDetallesConteo1 += articulo.cantidad_mal_estado.toInt().toString() + "|";
+      cDetallesConteo1 += articulo.piezas.toInt().toString() + "|";
+      cDetallesConteo1 += articulo.piezas_mal_estado.toInt().toString() + "Ç";
+    } else if (widget.conteo == 2) {
+      // Guardar en lista de conteo 2
+      cDetallesConteo2 += articulo.clave_articulo.toString() + "|";
+      cDetallesConteo2 += articulo.cantidad.toInt().toString() + "|";
+      cDetallesConteo2 += articulo.cantidad_mal_estado.toInt().toString() + "|";
+      cDetallesConteo2 += articulo.piezas.toInt().toString() + "|";
+      cDetallesConteo2 += articulo.piezas_mal_estado.toInt().toString() + "Ç";
+    }
+  });
 
+  // Reiniciar los controladores
+  setState(() {
+    cantidadControllers.forEach((controller) => controller.text = '0'); // Reiniciar los controladores
+  });
+
+  // Dependiendo del conteo, guardamos en la base de datos
+  if (widget.conteo == 1) {
+    // Guarda los artículos en la base de datos para conteo 1
     DatabaseProvider.guardaTomaInventario(
-            widget.toma, widget.conteo ,widget.usuario.usuario, cDetalles)
-        .then((value) {
+      widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo1
+    ).then((value) {
+      if (value) {
+        Navigator.pop(context, true);
+      } else {
+        MensajesProvider.mensaje(context, 'Ocurrió un error');
+      }
+    }).onError((error, stackTrace) {
+      MensajesProvider.mensajeExtendido(context, "Error", error.toString());
+    });
+  } else if (widget.conteo == 2) {
+    // Guarda los artículos en la base de datos para conteo 2
+    DatabaseProvider.guardaTomaInventario(
+      widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo2
+    ).then((value) {
       if (value) {
         Navigator.pop(context, true);
       } else {
@@ -102,6 +132,8 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
       MensajesProvider.mensajeExtendido(context, "Error", error.toString());
     });
   }
+}
+
 
   _busqueda() {
     if (articuloController.value.text.isNotEmpty) {
@@ -156,26 +188,27 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     bool encontrado = false;
 
     if (barcode != null) {
-      widget.detallesTomas..forEach((articulo) {
-        if (articulo.clave_articulo.toString().contains(barcode) ||
-            articulo.articulo.toUpperCase().contains(barcode) ||
-            articulo.clave_anterior.toUpperCase().contains(barcode)) {
-          // Encuentra el artículo y aumenta la cantidad
-          setState(() {
-            // Aumenta la cantidad en el controlador correspondiente
-            int count = int.parse(cantidadControllers[index].text);
-            cantidadControllers[index].text = (count + 1).toString();
+      widget.detallesTomas
+        ..forEach((articulo) {
+          if (articulo.clave_articulo.toString().contains(barcode) ||
+              articulo.articulo.toUpperCase().contains(barcode) ||
+              articulo.clave_anterior.toUpperCase().contains(barcode)) {
+            // Encuentra el artículo y aumenta la cantidad
+            setState(() {
+              // Aumenta la cantidad en el controlador correspondiente
+              int count = int.parse(cantidadControllers[index].text);
+              cantidadControllers[index].text = (count + 1).toString();
 
-            // Incrementa la cantidad total
-            cantidadTotal += 1;
-          });
+              // Incrementa la cantidad total
+              cantidadTotal += 1;
+            });
 
-          carruselController
-              .jumpToPage(index); // Mueve el carrusel al artículo encontrado
-          encontrado = true;
-        }
-        index++;
-      });
+            carruselController
+                .jumpToPage(index); // Mueve el carrusel al artículo encontrado
+            encontrado = true;
+          }
+          index++;
+        });
 
       if (!encontrado) {
         Fluttertoast.showToast(

@@ -89,8 +89,9 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
           },
         );
 
+        // Pasando el valor de 'conteo' a la consulta
         DatabaseProvider.getTomasInventarios(
-                int.parse(cleanedText), widget.usuario.usuario)
+                int.parse(cleanedText), widget.usuario.usuario, conteo)
             .then((resultado) {
           Navigator.of(context).pop();
           setState(() {
@@ -106,19 +107,20 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                   tooltip = "Captura de Artículos";
                   fecha = "Fecha: " + tomas_inventarios.first.fecha_registro;
                   estado = "Estado: " + tomas_inventarios.first.estado_actual;
-
                   narticulos = "No. Artículos: " +
                       numberFormat.format(double.parse(
                           tomas_inventarios.first.total_articulos.toString()));
-
                   conjunto = "Conjunto: " + tomas_inventarios.first.conjunto;
-                  showConteo = true;
+                  showConteo =
+                      true; // Al mostrar los detalles, ocultamos el conteo
                 });
               } else {
                 MensajesProvider.mensaje(context,
                     'No se encontró o ya ha sido dado por terminado el folio de toma Inventario');
               }
-            } catch (e) {}
+            } catch (e) {
+              MensajesProvider.mensaje(context, 'Error al obtener los datos');
+            }
           });
         }).onError((error, stackTrace) {
           MensajesProvider.mensajeExtendido(context, "Error", error.toString());
@@ -248,7 +250,7 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Toma",
+                            "Toma                                                                 Conteo: ${conteo}",
                             textAlign: TextAlign.left,
                             style: GoogleFonts.getFont('Poppins',
                                 fontWeight: FontWeight.bold,
@@ -285,6 +287,73 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                                 fontWeight: FontWeight.bold, color: folioColor),
                           ),
                           SizedBox(height: 15),
+                          // Cambiar la visibilidad del dropdown basado en showConteo
+                          Visibility(
+                            visible:
+                                !showConteo, // Se oculta si showConteo es true
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, bottom: 8.0),
+                                  child: Text(
+                                    "Selecciona el conteo:",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 20),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: DropdownButton<int>(
+                                    value: conteo,
+                                    onChanged: (int newValue) {
+                                      setState(() {
+                                        conteo = newValue;
+                                      });
+                                    },
+                                    isExpanded: true,
+                                    iconEnabledColor: Colors.black,
+                                    iconSize: 24,
+                                    underline: SizedBox(),
+                                    items: <int>[
+                                      1,
+                                      2
+                                    ].map<DropdownMenuItem<int>>((int value) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text(
+                                          'Conteo $value',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.black87),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                SizedBox(height: 15),
+                              ],
+                            ),
+                          ),
+
                           Text(
                             fecha,
                             textAlign: TextAlign.left,
@@ -313,36 +382,6 @@ class _TomaDeInventariosWidgetState extends State<TomaDeInventariosWidget>
                                 fontSize: 16, color: Colors.black54),
                           ),
                           SizedBox(height: 8),
-                          showConteo
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Selecciona el tipo de conteo:",
-                                      style: GoogleFonts.getFont('Poppins',
-                                          fontSize: 16),
-                                    ),
-                                    DropdownButton<int>(
-                                      value: conteo,
-                                      onChanged: (int newValue) {
-                                        setState(() {
-                                          conteo = newValue;
-                                        });
-                                      },
-                                      items: <int>[
-                                        1,
-                                        2
-                                      ].map<DropdownMenuItem<int>>((int value) {
-                                        return DropdownMenuItem<int>(
-                                          value: value,
-                                          child: Text('Conteo $value'),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    SizedBox(height: 15),
-                                  ],
-                                )
-                              : SizedBox(), 
                         ],
                       ),
                     ),

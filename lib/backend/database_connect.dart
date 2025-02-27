@@ -95,36 +95,48 @@ class DatabaseProvider {
   //----------------------------------------------------------
   // SECCION DE TOMA DE INVENTARIOS
   //----------------------------------------------------------
-  static Future<List<dynamic>> getTomasInventarios(
-      int toma, int usuario) async {
-    var preffs = await SharedPreferences.getInstance();
-    String tempServer = preffs.getString("server");
-    Map data = {
-      'db_host': tempServer,
-      'action': "consulta_folio_toma",
-      'toma': toma,
-      'usuario': usuario
-    };
+static Future<List<dynamic>> getTomasInventarios(
+    int toma, int usuario, int conteo) async {
+  var preffs = await SharedPreferences.getInstance();
+  String tempServer = preffs.getString("server");
+  
+  // Modificar el mapa de datos para incluir el conteo
+  Map data = {
+    'db_host': tempServer,
+    'action': "consulta_folio_toma",
+    'toma': toma,
+    'usuario': usuario,
+    'conteo': conteo,  // Añadir el conteo aquí
+  };
 
-    var body = json.encode(data);
-    var response = await http.post(Uri.parse(ROOT),
-        headers: {"Content-Type": "application/json"}, body: body);
-    if (response.statusCode == 200) {
-      print(response.body);
-      variables total = parseTotal(json.decode(response.body));
-      List<tomasInventario> tomas_inventarios =
-          parseTomasInventarios(json.decode(response.body));
-      List<detallesTomaInventario> detallesTomas =
-          parseDetallesTomas(json.decode(response.body));
-      List<dynamic> resultado = [];
-      resultado.add(total);
-      resultado.add(tomas_inventarios);
-      resultado.add(detallesTomas);
-      return resultado;
-    } else {
-      throw "No se logró establecer conexión";
-    }
+  var body = json.encode(data);
+
+  // Realizamos la petición al servidor
+  var response = await http.post(Uri.parse(ROOT),
+      headers: {"Content-Type": "application/json"}, body: body);
+
+  if (response.statusCode == 200) {
+    print(response.body);
+    
+    // Aquí se parsean los resultados
+    variables total = parseTotal(json.decode(response.body));
+    List<tomasInventario> tomas_inventarios =
+        parseTomasInventarios(json.decode(response.body));
+    List<detallesTomaInventario> detallesTomas =
+        parseDetallesTomas(json.decode(response.body));
+    
+    // Crear una lista para los resultados
+    List<dynamic> resultado = [];
+    resultado.add(total);
+    resultado.add(tomas_inventarios);
+    resultado.add(detallesTomas);
+    
+    return resultado;
+  } else {
+    throw "No se logró establecer conexión";
   }
+}
+
 
   static variables parseTotal(Map<String, dynamic> responseBody) {
     List<dynamic> detallesjson = responseBody['total'];
