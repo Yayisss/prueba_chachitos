@@ -33,7 +33,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   int carruselIndex = 0;
   String cDetalles = "";
   bool buscando = false;
-
   double cantidadTotal = 0;
 
   @override
@@ -46,7 +45,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   @override
   void initState() {
     super.initState();
-
+    articuloController = TextEditingController();
     cantidadControllers = widget.detallesTomas
         .map((articulo) => TextEditingController(text: '0'))
         .toList();
@@ -54,7 +53,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
 
   _aumentaCantidad() {
     setState(() {
-      // Actualizamos el controlador
       int count = int.parse(cantidadControllers[carruselIndex].text);
       cantidadControllers[carruselIndex].text = (count + 1).toString();
     });
@@ -64,7 +62,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     if (cantidadControllers[carruselIndex].text.isNotEmpty) {
       if (int.parse(cantidadControllers[carruselIndex].text) != 0) {
         setState(() {
-          // Actualizamos el controlador
           int count = int.parse(cantidadControllers[carruselIndex].text);
           cantidadControllers[carruselIndex].text = (count - 1).toString();
         });
@@ -73,7 +70,6 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   }
 
 _guardarCapturaDeArticulos() async {
-  // Inicializamos las listas para conteo 1 y conteo 2
   String cDetallesConteo1 = "";
   String cDetallesConteo2 = "";
 
@@ -81,16 +77,13 @@ _guardarCapturaDeArticulos() async {
     double contador = double.parse(cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
     articulo.cantidad += contador;
 
-    // Dependiendo del conteo, guardamos en las listas correspondientes
     if (widget.conteo == 1) {
-      // Guardar en lista de conteo 1
       cDetallesConteo1 += articulo.clave_articulo.toString() + "|";
       cDetallesConteo1 += articulo.cantidad.toInt().toString() + "|";
       cDetallesConteo1 += articulo.cantidad_mal_estado.toInt().toString() + "|";
       cDetallesConteo1 += articulo.piezas.toInt().toString() + "|";
       cDetallesConteo1 += articulo.piezas_mal_estado.toInt().toString() + "Ç";
     } else if (widget.conteo == 2) {
-      // Guardar en lista de conteo 2
       cDetallesConteo2 += articulo.clave_articulo.toString() + "|";
       cDetallesConteo2 += articulo.cantidad.toInt().toString() + "|";
       cDetallesConteo2 += articulo.cantidad_mal_estado.toInt().toString() + "|";
@@ -99,14 +92,11 @@ _guardarCapturaDeArticulos() async {
     }
   });
 
-  // Reiniciar los controladores
   setState(() {
-    cantidadControllers.forEach((controller) => controller.text = '0'); // Reiniciar los controladores
+    cantidadControllers.forEach((controller) => controller.text = '0'); 
   });
 
-  // Dependiendo del conteo, guardamos en la base de datos
   if (widget.conteo == 1) {
-    // Guarda los artículos en la base de datos para conteo 1
     DatabaseProvider.guardaTomaInventario(
       widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo1
     ).then((value) {
@@ -119,7 +109,6 @@ _guardarCapturaDeArticulos() async {
       MensajesProvider.mensajeExtendido(context, "Error", error.toString());
     });
   } else if (widget.conteo == 2) {
-    // Guarda los artículos en la base de datos para conteo 2
     DatabaseProvider.guardaTomaInventario(
       widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo2
     ).then((value) {
@@ -134,8 +123,7 @@ _guardarCapturaDeArticulos() async {
   }
 }
 
-
-  _busqueda() {
+_busqueda() {
     if (articuloController.value.text.isNotEmpty) {
       if (articuloController.value.text == "") {
         buscando = false;
@@ -147,11 +135,14 @@ _guardarCapturaDeArticulos() async {
       } else {
         buscando = true;
         widget.detallesTomas.forEach((articulo) {
-          String busqueda = articuloController.value.text.toUpperCase();
+          String busqueda = articuloController.value.text.trim().toUpperCase();
           if (articulo.clave_articulo.toString().contains(busqueda) ||
-              articulo.articulo.toUpperCase().contains(busqueda) ||
-              articulo.clave_anterior.toUpperCase().contains(busqueda) ||
-              articulo.nombre_articulo.toUpperCase().contains(busqueda)) {
+              articulo.articulo.toUpperCase().trim().contains(busqueda) ||
+              articulo.clave_anterior.toUpperCase().trim().contains(busqueda) ||
+              articulo.nombre_articulo
+                  .toUpperCase()
+                  .trim()
+                  .contains(busqueda)) {
             setState(() {
               articulo.busqueda = true;
             });
@@ -171,6 +162,7 @@ _guardarCapturaDeArticulos() async {
       });
     }
   }
+
 
   _leerCodigoBarras() async {
     await Permission.camera.request();
@@ -193,18 +185,14 @@ _guardarCapturaDeArticulos() async {
           if (articulo.clave_articulo.toString().contains(barcode) ||
               articulo.articulo.toUpperCase().contains(barcode) ||
               articulo.clave_anterior.toUpperCase().contains(barcode)) {
-            // Encuentra el artículo y aumenta la cantidad
             setState(() {
-              // Aumenta la cantidad en el controlador correspondiente
               int count = int.parse(cantidadControllers[index].text);
               cantidadControllers[index].text = (count + 1).toString();
-
-              // Incrementa la cantidad total
               cantidadTotal += 1;
             });
 
             carruselController
-                .jumpToPage(index); // Mueve el carrusel al artículo encontrado
+                .jumpToPage(index); 
             encontrado = true;
           }
           index++;
@@ -301,7 +289,7 @@ _guardarCapturaDeArticulos() async {
                   ])),
               Container(
                 height:
-                    MediaQuery.of(context).size.height, // Altura fija de 300px
+                    MediaQuery.of(context).size.height, 
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
@@ -309,14 +297,14 @@ _guardarCapturaDeArticulos() async {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 5),
                       child: TextFormField(
-                        onChanged: (value) {
-                          _busqueda();
-                        },
-                        controller: articuloController,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Escribe un nombre o clave de artículo aquí',
-                          hintStyle: GoogleFonts.poppins(
+                              onChanged: (value) {
+                                _busqueda();
+                              },
+                              controller: articuloController,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'Escribe un nombre o clave de artículo aquí',
+                               hintStyle: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                             color: Colors.grey,
@@ -324,9 +312,9 @@ _guardarCapturaDeArticulos() async {
                           prefixIcon: Icon(Icons.search, color: Colors.orange),
                           filled: true,
                           fillColor: Color(0xFFF4F4F4),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 100,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    width: 100,
                               color: Colors.grey[300],
                             ),
                             borderRadius: BorderRadius.circular(25),
@@ -335,64 +323,66 @@ _guardarCapturaDeArticulos() async {
                             borderSide: BorderSide(
                               color: Color(0xFFF57C00),
                               width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              style: GoogleFonts.getFont(
+                                'Poppins',
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ),
                     ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 1),
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                                    15, 15, 15, 0),
                         physics: BouncingScrollPhysics(),
                         scrollDirection: Axis.vertical,
                         shrinkWrap: true,
                         itemCount: widget.detallesTomas.length,
                         itemBuilder: (context, listViewIndex) {
                           final i = widget.detallesTomas[listViewIndex];
-                          if (buscando && i.busqueda) {
-                            return InkWell(
-                              onTap: () {
-                                carruselController.jumpToPage(listViewIndex);
-                                articuloController.text = "";
-                                _busqueda();
-                                FocusManager.instance.primaryFocus?.unfocus();
-                              },
-                              child: Container(
-                                margin: EdgeInsets.only(bottom: 10),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 5,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(i.articulo,
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)),
-                                    SizedBox(height: 5),
-                                    Text(i.nombre_articulo,
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }
-                          return Container();
+                          if (buscando) {
+                                    if (i.busqueda) {
+                                      return InkWell(
+                                        onTap: () {
+                                          carruselController
+                                              .jumpToPage(listViewIndex);
+                                          articuloController.text = "";
+                                          _busqueda();
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              i.articulo.trim(),
+                                              textAlign: TextAlign.left,
+                                              style: GoogleFonts.getFont(
+                                                  'Poppins',
+                                                  fontSize: 15,
+                                                  color: Colors.black),
+                                            ),
+                                            Text(
+                                              i.nombre_articulo.trim(),
+                                              textAlign: TextAlign.left,
+                                              style: GoogleFonts.getFont(
+                                                  'Poppins',
+                                                  fontSize: 15,
+                                                  color: Colors.black),
+                                            ),
+                                            SizedBox(height: 15),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      return Column();
+                                    }
+                                  } else {
+                                    return Column();
+                                  }
                         }),
                     SizedBox(height: 20),
                     CarouselSlider(
@@ -494,8 +484,7 @@ _guardarCapturaDeArticulos() async {
                                     ),
                                     SizedBox(
                                         height:
-                                            30), // Espacio para la cantidad total
-                                    // Mueve esta parte hacia el final de la tarjeta
+                                            30),
                                     Align(
                                       alignment: Alignment.bottomCenter,
                                       child: RichText(
