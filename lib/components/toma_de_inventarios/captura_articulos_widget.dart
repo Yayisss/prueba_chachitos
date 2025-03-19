@@ -33,7 +33,8 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   int carruselIndex = 0;
   String cDetalles = "";
   bool buscando = false;
-  double cantidadTotal = 0;
+  double cantidadTotal = 0.0;
+  Map<int, double> cantidadesTemporales = {}; // Guardar cantidades modificadas
 
   @override
   void dispose() {
@@ -53,23 +54,25 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
 
   _aumentaCantidad() {
     setState(() {
-      int count = int.parse(cantidadControllers[carruselIndex].text);
-      cantidadControllers[carruselIndex].text = (count + 1).toString();
+      double count = double.parse(cantidadControllers[carruselIndex].text);
+      count += 1.0; 
+      cantidadControllers[carruselIndex].text = count.toStringAsFixed(2);
     });
   }
 
   _disminuyeCantidad() {
     if (cantidadControllers[carruselIndex].text.isNotEmpty) {
-      if (int.parse(cantidadControllers[carruselIndex].text) != 0) {
+      double count = double.parse(cantidadControllers[carruselIndex].text);
+      if (count > 0) {
         setState(() {
-          int count = int.parse(cantidadControllers[carruselIndex].text);
-          cantidadControllers[carruselIndex].text = (count - 1).toString();
+          count -= 1.0;
+          cantidadControllers[carruselIndex].text = count.toStringAsFixed(2);
         });
       }
     }
   }
 
-_guardarCapturaDeArticulos() async {
+  _guardarCapturaDeArticulos() async {
   String cDetallesConteo1 = "";
   String cDetallesConteo2 = "";
 
@@ -79,51 +82,51 @@ _guardarCapturaDeArticulos() async {
 
     if (widget.conteo == 1) {
       cDetallesConteo1 += articulo.clave_articulo.toString() + "|";
-      cDetallesConteo1 += articulo.cantidad.toInt().toString() + "|";
-      cDetallesConteo1 += articulo.cantidad_mal_estado.toInt().toString() + "|";
-      cDetallesConteo1 += articulo.piezas.toInt().toString() + "|";
-      cDetallesConteo1 += articulo.piezas_mal_estado.toInt().toString() + "Ç";
+      cDetallesConteo1 += articulo.cantidad.toString() + "|";  
+      cDetallesConteo1 += articulo.cantidad_mal_estado.toString() + "|";
+      cDetallesConteo1 += articulo.piezas.toString() + "|";
+      cDetallesConteo1 += articulo.piezas_mal_estado.toString() + "Ç";
     } else if (widget.conteo == 2) {
       cDetallesConteo2 += articulo.clave_articulo.toString() + "|";
-      cDetallesConteo2 += articulo.cantidad.toInt().toString() + "|";
-      cDetallesConteo2 += articulo.cantidad_mal_estado.toInt().toString() + "|";
-      cDetallesConteo2 += articulo.piezas.toInt().toString() + "|";
-      cDetallesConteo2 += articulo.piezas_mal_estado.toInt().toString() + "Ç";
+      cDetallesConteo2 += articulo.cantidad.toString() + "|";  
+      cDetallesConteo2 += articulo.cantidad_mal_estado.toString() + "|";
+      cDetallesConteo2 += articulo.piezas.toString() + "|";
+      cDetallesConteo2 += articulo.piezas_mal_estado.toString() + "Ç";
     }
   });
 
-  setState(() {
-    cantidadControllers.forEach((controller) => controller.text = '0'); 
-  });
+    setState(() {
+      cantidadControllers.forEach((controller) => controller.text = '0');
+    });
 
-  if (widget.conteo == 1) {
-    DatabaseProvider.guardaTomaInventario(
-      widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo1
-    ).then((value) {
-      if (value) {
-        Navigator.pop(context, true);
-      } else {
-        MensajesProvider.mensaje(context, 'Ocurrió un error');
-      }
-    }).onError((error, stackTrace) {
-      MensajesProvider.mensajeExtendido(context, "Error", error.toString());
-    });
-  } else if (widget.conteo == 2) {
-    DatabaseProvider.guardaTomaInventario(
-      widget.toma, widget.conteo, widget.usuario.usuario, cDetallesConteo2
-    ).then((value) {
-      if (value) {
-        Navigator.pop(context, true);
-      } else {
-        MensajesProvider.mensaje(context, 'Ocurrió un error');
-      }
-    }).onError((error, stackTrace) {
-      MensajesProvider.mensajeExtendido(context, "Error", error.toString());
-    });
+    if (widget.conteo == 1) {
+      DatabaseProvider.guardaTomaInventario(widget.toma, widget.conteo,
+              widget.usuario.usuario, cDetallesConteo1)
+          .then((value) {
+        if (value) {
+          Navigator.pop(context, true);
+        } else {
+          MensajesProvider.mensaje(context, 'Ocurrió un error');
+        }
+      }).onError((error, stackTrace) {
+        MensajesProvider.mensajeExtendido(context, "Error", error.toString());
+      });
+    } else if (widget.conteo == 2) {
+      DatabaseProvider.guardaTomaInventario(widget.toma, widget.conteo,
+              widget.usuario.usuario, cDetallesConteo2)
+          .then((value) {
+        if (value) {
+          Navigator.pop(context, true);
+        } else {
+          MensajesProvider.mensaje(context, 'Ocurrió un error');
+        }
+      }).onError((error, stackTrace) {
+        MensajesProvider.mensajeExtendido(context, "Error", error.toString());
+      });
+    }
   }
-}
 
-_busqueda() {
+  _busqueda() {
     if (articuloController.value.text.isNotEmpty) {
       if (articuloController.value.text == "") {
         buscando = false;
@@ -163,7 +166,6 @@ _busqueda() {
     }
   }
 
-
   _leerCodigoBarras() async {
     await Permission.camera.request();
 
@@ -191,8 +193,7 @@ _busqueda() {
               cantidadTotal += 1;
             });
 
-            carruselController
-                .jumpToPage(index); 
+            carruselController.jumpToPage(index);
             encontrado = true;
           }
           index++;
@@ -288,8 +289,7 @@ _busqueda() {
                     SizedBox(height: 10),
                   ])),
               Container(
-                height:
-                    MediaQuery.of(context).size.height, 
+                height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
@@ -297,14 +297,14 @@ _busqueda() {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 5),
                       child: TextFormField(
-                              onChanged: (value) {
-                                _busqueda();
-                              },
-                              controller: articuloController,
-                              decoration: InputDecoration(
-                                hintText:
-                                    'Escribe un nombre o clave de artículo aquí',
-                               hintStyle: GoogleFonts.poppins(
+                        onChanged: (value) {
+                          _busqueda();
+                        },
+                        controller: articuloController,
+                        decoration: InputDecoration(
+                          hintText:
+                              'Escribe un nombre o clave de artículo aquí',
+                          hintStyle: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                             color: Colors.grey,
@@ -312,9 +312,9 @@ _busqueda() {
                           prefixIcon: Icon(Icons.search, color: Colors.orange),
                           filled: true,
                           fillColor: Color(0xFFF4F4F4),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    width: 100,
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 100,
                               color: Colors.grey[300],
                             ),
                             borderRadius: BorderRadius.circular(25),
@@ -323,19 +323,18 @@ _busqueda() {
                             borderSide: BorderSide(
                               color: Color(0xFFF57C00),
                               width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                              ),
-                              style: GoogleFonts.getFont(
-                                'Poppins',
-                                fontWeight: FontWeight.bold,
-                              ),
                             ),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        style: GoogleFonts.getFont(
+                          'Poppins',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     ListView.builder(
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                                    15, 15, 15, 0),
+                        padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
                         physics: BouncingScrollPhysics(),
                         scrollDirection: Axis.vertical,
                         shrinkWrap: true,
@@ -343,46 +342,39 @@ _busqueda() {
                         itemBuilder: (context, listViewIndex) {
                           final i = widget.detallesTomas[listViewIndex];
                           if (buscando) {
-                                    if (i.busqueda) {
-                                      return InkWell(
-                                        onTap: () {
-                                          carruselController
-                                              .jumpToPage(listViewIndex);
-                                          articuloController.text = "";
-                                          _busqueda();
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-                                        },
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              i.articulo.trim(),
-                                              textAlign: TextAlign.left,
-                                              style: GoogleFonts.getFont(
-                                                  'Poppins',
-                                                  fontSize: 15,
-                                                  color: Colors.black),
-                                            ),
-                                            Text(
-                                              i.nombre_articulo.trim(),
-                                              textAlign: TextAlign.left,
-                                              style: GoogleFonts.getFont(
-                                                  'Poppins',
-                                                  fontSize: 15,
-                                                  color: Colors.black),
-                                            ),
-                                            SizedBox(height: 15),
-                                          ],
-                                        ),
-                                      );
-                                    } else {
-                                      return Column();
-                                    }
-                                  } else {
-                                    return Column();
-                                  }
+                            if (i.busqueda) {
+                              return InkWell(
+                                onTap: () {
+                                  carruselController.jumpToPage(listViewIndex);
+                                  articuloController.text = "";
+                                  _busqueda();
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      i.articulo.trim(),
+                                      textAlign: TextAlign.left,
+                                      style: GoogleFonts.getFont('Poppins',
+                                          fontSize: 15, color: Colors.black),
+                                    ),
+                                    Text(
+                                      i.nombre_articulo.trim(),
+                                      textAlign: TextAlign.left,
+                                      style: GoogleFonts.getFont('Poppins',
+                                          fontSize: 15, color: Colors.black),
+                                    ),
+                                    SizedBox(height: 15),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              return Column();
+                            }
+                          } else {
+                            return Column();
+                          }
                         }),
                     SizedBox(height: 20),
                     CarouselSlider(
@@ -432,7 +424,7 @@ _busqueda() {
                                         )),
                                     SizedBox(height: 20),
                                     Text(
-                                      "Último registro: ${widget.detallesTomas[carruselIndex].cantidad.toInt()}",
+                                      "Último registro: ${widget.detallesTomas[carruselIndex].cantidad}",
                                       style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -456,11 +448,14 @@ _busqueda() {
                                           child: TextFormField(
                                             controller: cantidadControllers[
                                                 carruselIndex],
-                                            keyboardType: TextInputType.number,
+                                            keyboardType:
+                                                TextInputType.numberWithOptions(
+                                                    decimal: true),
                                             inputFormatters: <
                                                 TextInputFormatter>[
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly,
+                                              FilteringTextInputFormatter.allow(
+                                                  RegExp(
+                                                      r'^\d*\.?\d{0,2}')), // Permite números con hasta dos decimales
                                             ],
                                             decoration: InputDecoration(
                                               border: OutlineInputBorder(),
@@ -482,9 +477,7 @@ _busqueda() {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(
-                                        height:
-                                            30),
+                                    SizedBox(height: 30),
                                     Align(
                                       alignment: Alignment.bottomCenter,
                                       child: RichText(
@@ -503,7 +496,7 @@ _busqueda() {
                                             ),
                                             TextSpan(
                                               text:
-                                                  "${(widget.detallesTomas[carruselIndex].cantidad.toInt() + int.parse(cantidadControllers[carruselIndex].text)).toInt()} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
+                                                  "${(widget.detallesTomas[carruselIndex].cantidad + double.parse(cantidadControllers[carruselIndex].text))} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
                                               style: TextStyle(
                                                 color: Colors.green[600],
                                                 fontSize: 20,

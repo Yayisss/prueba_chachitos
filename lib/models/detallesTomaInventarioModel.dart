@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class detallesTomaInventario {
   int clave_articulo;
-  int cantidadGuardada;
+  double cantidadGuardada;
   int conteo;
   String clave_anterior;
   String articulo;
@@ -29,19 +29,20 @@ class detallesTomaInventario {
     this.nombre_ubicacion,
     this.nombre_unidad,
     this.nombre_unidad_alterna,
-    this.cantidad = 0,
+    this.cantidad = 0.0,
     this.cantidad_mal_estado = 0,
     this.piezas = 0,
     this.piezas_mal_estado = 0,
     this.cantidad_comprometida = 0,
     this.busqueda = true,
-    this.cantidadTotal = 0,
-    this.cantidadGuardada = 0
+    this.cantidadTotal = 0.0,
+    this.cantidadGuardada = 0.0
   }) {
-    cantidadController = TextEditingController(text: cantidad.toString());
+    cantidadController = TextEditingController(text: cantidad.toStringAsFixed(2)); // Usa formato de 2 decimales
   }
 
   factory detallesTomaInventario.fromJson(Map<String, dynamic> json) {
+    double cantidadValue = double.tryParse(json['cantidad'].toString()) ?? 0.0;
     return detallesTomaInventario(
       clave_articulo: json['clave_articulo'] as int,
       clave_anterior: json['clave_anterior'] as String,
@@ -51,18 +52,14 @@ class detallesTomaInventario {
       nombre_ubicacion: json['nombre_ubicacion'] as String,
       nombre_unidad: json['nombre_unidad'] as String,
       nombre_unidad_alterna: json['nombre_unidad_alterna'] as String,
-      cantidad: double.tryParse(json['cantidad'].toString()) ?? 0.0,
-      cantidad_mal_estado:
-          double.tryParse(json['cantidad_mal_estado'].toString()) ?? 0.0,
+      cantidad: cantidadValue,
+      cantidad_mal_estado: double.tryParse(json['cantidad_mal_estado'].toString()) ?? 0.0,
       piezas: double.tryParse(json['piezas'].toString()) ?? 0.0,
-      piezas_mal_estado:
-          double.tryParse(json['piezas_mal_estado'].toString()) ?? 0.0,
-      cantidad_comprometida:
-          double.tryParse(json['cantidad_comprometida'].toString()) ?? 0.0,
+      piezas_mal_estado: double.tryParse(json['piezas_mal_estado'].toString()) ?? 0.0,
+      cantidad_comprometida: double.tryParse(json['cantidad_comprometida'].toString()) ?? 0.0,
       busqueda: true,
       cantidadTotal: double.tryParse(json['cantidadTotal'].toString()) ?? 0.0
-    )..cantidadController =
-        TextEditingController(text: json['cantidad'].toString());
+    )..cantidadController = TextEditingController(text: cantidadValue.toStringAsFixed(2)); 
   }
 
   Map<String, dynamic> toJson() {
@@ -87,5 +84,14 @@ class detallesTomaInventario {
 
   void calcularCantidadTotal() {
     this.cantidadTotal = this.cantidad;
+  }
+
+  // Método para obtener la cantidad como double desde el TextEditingController
+  double obtenerCantidad() {
+    try {
+      return double.parse(cantidadController.text); // Convierte el texto a double
+    } catch (e) {
+      return 0.0; // Retorna 0.0 si la conversión falla
+    }
   }
 }
