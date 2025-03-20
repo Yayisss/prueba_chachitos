@@ -52,10 +52,19 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
         .toList();
   }
 
+  _actualizarArticulo() {
+    final articulo = widget.detallesTomas[carruselIndex];
+    double cantidadModificada =
+        double.parse(cantidadControllers[carruselIndex].text);
+    cantidadesTemporales[articulo.clave_articulo] = cantidadModificada;
+    articulo.cantidad += cantidadModificada;
+    cantidadControllers[carruselIndex].text = '0';
+  }
+
   _aumentaCantidad() {
     setState(() {
       double count = double.parse(cantidadControllers[carruselIndex].text);
-      count += 1.0; 
+      count += 1.0;
       cantidadControllers[carruselIndex].text = count.toStringAsFixed(2);
     });
   }
@@ -73,27 +82,28 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   }
 
   _guardarCapturaDeArticulos() async {
-  String cDetallesConteo1 = "";
-  String cDetallesConteo2 = "";
+    String cDetallesConteo1 = "";
+    String cDetallesConteo2 = "";
 
-  widget.detallesTomas.forEach((articulo) {
-    double contador = double.parse(cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
-    articulo.cantidad += contador;
+    widget.detallesTomas.forEach((articulo) {
+      double contador = double.parse(
+          cantidadControllers[widget.detallesTomas.indexOf(articulo)].text);
+      articulo.cantidad += contador;
 
-    if (widget.conteo == 1) {
-      cDetallesConteo1 += articulo.clave_articulo.toString() + "|";
-      cDetallesConteo1 += articulo.cantidad.toString() + "|";  
-      cDetallesConteo1 += articulo.cantidad_mal_estado.toString() + "|";
-      cDetallesConteo1 += articulo.piezas.toString() + "|";
-      cDetallesConteo1 += articulo.piezas_mal_estado.toString() + "Ç";
-    } else if (widget.conteo == 2) {
-      cDetallesConteo2 += articulo.clave_articulo.toString() + "|";
-      cDetallesConteo2 += articulo.cantidad.toString() + "|";  
-      cDetallesConteo2 += articulo.cantidad_mal_estado.toString() + "|";
-      cDetallesConteo2 += articulo.piezas.toString() + "|";
-      cDetallesConteo2 += articulo.piezas_mal_estado.toString() + "Ç";
-    }
-  });
+      if (widget.conteo == 1) {
+        cDetallesConteo1 += articulo.clave_articulo.toString() + "|";
+        cDetallesConteo1 += articulo.cantidad.toString() + "|";
+        cDetallesConteo1 += articulo.cantidad_mal_estado.toString() + "|";
+        cDetallesConteo1 += articulo.piezas.toString() + "|";
+        cDetallesConteo1 += articulo.piezas_mal_estado.toString() + "Ç";
+      } else if (widget.conteo == 2) {
+        cDetallesConteo2 += articulo.clave_articulo.toString() + "|";
+        cDetallesConteo2 += articulo.cantidad.toString() + "|";
+        cDetallesConteo2 += articulo.cantidad_mal_estado.toString() + "|";
+        cDetallesConteo2 += articulo.piezas.toString() + "|";
+        cDetallesConteo2 += articulo.piezas_mal_estado.toString() + "Ç";
+      }
+    });
 
     setState(() {
       cantidadControllers.forEach((controller) => controller.text = '0');
@@ -386,6 +396,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
                         onPageChanged: (index, reason) {
                           setState(() {
                             carruselIndex = index;
+                            _actualizarArticulo();
                           });
                         },
                       ),
