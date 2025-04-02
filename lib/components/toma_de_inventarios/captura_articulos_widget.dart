@@ -81,7 +81,7 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
     }
   }
 
-  _guardarCapturaDeArticulos() async {
+  _guardarCapturaDeArticulos(bool regresar) async {
     String cDetallesConteo1 = "";
     String cDetallesConteo2 = "";
 
@@ -114,7 +114,10 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
               widget.usuario.usuario, cDetallesConteo1)
           .then((value) {
         if (value) {
-          Navigator.pop(context, true);
+          if (regresar) {
+            Navigator.pop(
+                context, true); // Solo regresa si el parámetro es verdadero
+          }
         } else {
           MensajesProvider.mensaje(context, 'Ocurrió un error');
         }
@@ -126,7 +129,10 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
               widget.usuario.usuario, cDetallesConteo2)
           .then((value) {
         if (value) {
-          Navigator.pop(context, true);
+          if (regresar) {
+            Navigator.pop(
+                context, true); // Solo regresa si el parámetro es verdadero
+          }
         } else {
           MensajesProvider.mensaje(context, 'Ocurrió un error');
         }
@@ -236,329 +242,358 @@ class _CapturaArticulosWidgetState extends State<CapturaArticulosWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        key: scaffoldKey,
-        appBar: AppBar(
-          backgroundColor: Color.fromARGB(255, 243, 124, 33),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.chevron_left_rounded,
-              color: Colors.white,
-              size: 35,
-            ),
-            tooltip: 'Volver',
-            onPressed: () async {
-              Navigator.pop(context);
-            },
+      key: scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 243, 124, 33),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.chevron_left_rounded,
+            color: Colors.white,
+            size: 35,
           ),
-          title: Text(
-            "Captura de Artículos",
-            style: GoogleFonts.getFont('Poppins',
-                fontWeight: FontWeight.bold, fontSize: 23, color: Colors.white),
-          ),
-          actions: [
-            PopupMenuButton(
-                tooltip: 'Opciones',
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem<int>(
-                      value: 1,
-                      child: Row(
-                        children: [Text("Ver artículo")],
-                      ),
-                    ),
-                  ];
-                },
-                onSelected: (value) {
-                  if (value == 1) {
-                    _openBusquedaDeArticulos();
-                  }
-                }),
-          ],
-          centerTitle: true,
+          tooltip: 'Volver',
+          onPressed: () async {
+            Navigator.pop(context);
+          },
         ),
-        backgroundColor: FlutterFlowTheme.of(context).background,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.max, children: [
-              Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
-                  child: Column(children: [
-                    Text(
-                      "Conteo: ${widget.conteo}",
-                      style: GoogleFonts.getFont('Poppins',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Color.fromARGB(255, 78, 76, 76)),
+        title: Text(
+          "Captura de Artículos",
+          style: GoogleFonts.getFont('Poppins',
+              fontWeight: FontWeight.bold, fontSize: 23, color: Colors.white),
+        ),
+        actions: [
+          PopupMenuButton(
+              tooltip: 'Opciones',
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem<int>(
+                    value: 1,
+                    child: Row(
+                      children: [Text("Ver artículo")],
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Desliza hacia los lados para navegar entre los artículos o busca un articulo mediante el cuadro de texto.",
-                      style: GoogleFonts.getFont('Poppins',
-                          fontSize: 13, color: Color.fromARGB(255, 78, 76, 76)),
-                    ),
-                    SizedBox(height: 10),
-                  ])),
-              Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 5),
-                      child: TextFormField(
-                        onChanged: (value) {
-                          _busqueda();
-                        },
-                        controller: articuloController,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Escribe un nombre o clave de artículo aquí',
-                          hintStyle: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                          prefixIcon: Icon(Icons.search, color: Colors.orange),
-                          filled: true,
-                          fillColor: Color(0xFFF4F4F4),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 100,
-                              color: Colors.grey[300],
-                            ),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFF57C00),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
+                  ),
+                ];
+              },
+              onSelected: (value) {
+                if (value == 1) {
+                  _openBusquedaDeArticulos();
+                }
+              }),
+        ],
+        centerTitle: true,
+      ),
+      backgroundColor: FlutterFlowTheme.of(context).background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.max, children: [
+            Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
+                child: Column(children: [
+                  Text(
+                    "Conteo: ${widget.conteo}",
+                    style: GoogleFonts.getFont('Poppins',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Color.fromARGB(255, 78, 76, 76)),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Desliza hacia los lados para navegar entre los artículos o busca un articulo mediante el cuadro de texto.",
+                    style: GoogleFonts.getFont('Poppins',
+                        fontSize: 13, color: Color.fromARGB(255, 78, 76, 76)),
+                  ),
+                  SizedBox(height: 10),
+                ])),
+            Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    child: TextFormField(
+                      onChanged: (value) {
+                        _busqueda();
+                      },
+                      controller: articuloController,
+                      decoration: InputDecoration(
+                        hintText: 'Escribe un nombre o clave de artículo aquí',
+                        hintStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: Colors.grey,
                         ),
-                        style: GoogleFonts.getFont(
-                          'Poppins',
-                          fontWeight: FontWeight.bold,
+                        prefixIcon: Icon(Icons.search, color: Colors.orange),
+                        filled: true,
+                        fillColor: Color(0xFFF4F4F4),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 100,
+                            color: Colors.grey[300],
+                          ),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color(0xFFF57C00),
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(25),
                         ),
                       ),
+                      style: GoogleFonts.getFont(
+                        'Poppins',
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    ListView.builder(
-                        padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
-                        physics: BouncingScrollPhysics(),
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        itemCount: widget.detallesTomas.length,
-                        itemBuilder: (context, listViewIndex) {
-                          final i = widget.detallesTomas[listViewIndex];
-                          if (buscando) {
-                            if (i.busqueda) {
-                              return InkWell(
-                                onTap: () {
-                                  carruselController.jumpToPage(listViewIndex);
-                                  articuloController.text = "";
-                                  _busqueda();
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                },
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      i.articulo.trim(),
-                                      textAlign: TextAlign.left,
-                                      style: GoogleFonts.getFont('Poppins',
-                                          fontSize: 15, color: Colors.black),
-                                    ),
-                                    Text(
-                                      i.nombre_articulo.trim(),
-                                      textAlign: TextAlign.left,
-                                      style: GoogleFonts.getFont('Poppins',
-                                          fontSize: 15, color: Colors.black),
-                                    ),
-                                    SizedBox(height: 15),
-                                  ],
-                                ),
-                              );
-                            } else {
-                              return Column();
-                            }
+                  ),
+                  ListView.builder(
+                      padding: EdgeInsetsDirectional.fromSTEB(15, 15, 15, 0),
+                      physics: BouncingScrollPhysics(),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: widget.detallesTomas.length,
+                      itemBuilder: (context, listViewIndex) {
+                        final i = widget.detallesTomas[listViewIndex];
+                        if (buscando) {
+                          if (i.busqueda) {
+                            return InkWell(
+                              onTap: () {
+                                carruselController.jumpToPage(listViewIndex);
+                                articuloController.text = "";
+                                _busqueda();
+                                FocusManager.instance.primaryFocus?.unfocus();
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    i.articulo.trim(),
+                                    textAlign: TextAlign.left,
+                                    style: GoogleFonts.getFont('Poppins',
+                                        fontSize: 15, color: Colors.black),
+                                  ),
+                                  Text(
+                                    i.nombre_articulo.trim(),
+                                    textAlign: TextAlign.left,
+                                    style: GoogleFonts.getFont('Poppins',
+                                        fontSize: 15, color: Colors.black),
+                                  ),
+                                  SizedBox(height: 15),
+                                ],
+                              ),
+                            );
                           } else {
                             return Column();
                           }
-                        }),
-                    SizedBox(height: 20),
-                    CarouselSlider(
-                      carouselController: carruselController,
-                      options: CarouselOptions(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        enlargeCenterPage: true,
-                        enableInfiniteScroll: false,
-                        onPageChanged: (index, reason) {
-                          setState(() {
-                            carruselIndex = index;
-                            _actualizarArticulo();
-                          });
-                        },
-                      ),
-                      items: widget.detallesTomas.map((i) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Container(
-                                padding: EdgeInsets.all(18),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 12,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(i.articulo,
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        )),
-                                    SizedBox(height: 5),
-                                    Text(i.nombre_articulo,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.grey[600],
-                                        )),
-                                    SizedBox(height: 20),
-                                    Text(
-                                      "Último registro: ${widget.detallesTomas[carruselIndex].cantidad}",
+                        } else {
+                          return Column();
+                        }
+                      }),
+                  SizedBox(height: 20),
+                  CarouselSlider(
+                    carouselController: carruselController,
+                    options: CarouselOptions(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      enlargeCenterPage: true,
+                      enableInfiniteScroll: false,
+                      onPageChanged: (index, reason) {
+                        setState(() {
+                          carruselIndex = index;
+                          _actualizarArticulo();
+                        });
+                      },
+                    ),
+                    items: widget.detallesTomas.map((i) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Container(
+                              padding: EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 12,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(i.articulo,
                                       style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[600]),
-                                    ),
-                                    SizedBox(height: 30),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        FloatingActionButton(
-                                          onPressed: () {
-                                            _disminuyeCantidad();
-                                          },
-                                          child: Icon(Icons.remove),
-                                          backgroundColor: Color(0xFFF57C00),
-                                        ),
-                                        SizedBox(width: 20),
-                                        Container(
-                                          width: 113,
-                                          child: TextFormField(
-                                            controller: cantidadControllers[
-                                                carruselIndex],
-                                            keyboardType:
-                                                TextInputType.numberWithOptions(
-                                                    decimal: true),
-                                            inputFormatters: <
-                                                TextInputFormatter>[
-                                              FilteringTextInputFormatter.allow(
-                                                  RegExp(
-                                                      r'^\d*\.?\d{0,2}')), // Permite números con hasta dos decimales
-                                            ],
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      horizontal: 8),
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            readOnly: false,
-                                          ),
-                                        ),
-                                        SizedBox(width: 20),
-                                        FloatingActionButton(
-                                          onPressed: () {
-                                            _aumentaCantidad();
-                                          },
-                                          child: Icon(Icons.add),
-                                          backgroundColor: Color(0xFFF57C00),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 30),
-                                    Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey[600],
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: "Cantidad total: ",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  "${(widget.detallesTomas[carruselIndex].cantidad + double.parse(cantidadControllers[carruselIndex].text))} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
-                                              style: TextStyle(
-                                                color: Colors.green[600],
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      )),
+                                  SizedBox(height: 5),
+                                  Text(i.nombre_articulo,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.grey[600],
+                                      )),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    "Último registro: ${widget.detallesTomas[carruselIndex].cantidad}",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[600]),
+                                  ),
+                                  SizedBox(height: 30),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      FloatingActionButton(
+                                        onPressed: () {
+                                          _disminuyeCantidad();
+                                        },
+                                        child: Icon(Icons.remove),
+                                        backgroundColor: Color(0xFFF57C00),
+                                      ),
+                                      SizedBox(width: 20),
+                                      Container(
+                                        width: 113,
+                                        child: TextFormField(
+                                          controller: cantidadControllers[
+                                              carruselIndex],
+                                          keyboardType:
+                                              TextInputType.numberWithOptions(
+                                                  decimal: true),
+                                          inputFormatters: <TextInputFormatter>[
+                                            FilteringTextInputFormatter.allow(
+                                                RegExp(
+                                                    r'^\d*\.?\d{0,2}')), // Permite números con hasta dos decimales
                                           ],
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                    horizontal: 8),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          readOnly: false,
                                         ),
                                       ),
+                                      SizedBox(width: 20),
+                                      FloatingActionButton(
+                                        onPressed: () {
+                                          _aumentaCantidad();
+                                        },
+                                        child: Icon(Icons.add),
+                                        backgroundColor: Color(0xFFF57C00),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 30),
+                                  Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[600],
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                            text: "Cantidad total: ",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                "${(widget.detallesTomas[carruselIndex].cantidad + double.parse(cantidadControllers[carruselIndex].text))} ${widget.detallesTomas[carruselIndex].nombre_unidad}",
+                                            style: TextStyle(
+                                              color: Colors.green[600],
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    )
-                  ],
-                ),
-              )
-            ]),
-          ),
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  )
+                ],
+              ),
+            )
+          ]),
         ),
-        floatingActionButton: Align(
-          alignment: Alignment.topRight,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              FloatingActionButton(
-                heroTag: "leeArticulo",
-                onPressed: () {
-                  _leerCodigoBarras();
-                },
-                backgroundColor: Color.fromARGB(255, 243, 124, 33),
-                tooltip: "Leer código de barras",
-                child: const Icon(FontAwesomeIcons.barcode),
-              ),
-              SizedBox(height: 10),
-              FloatingActionButton(
-                heroTag: "guardaCaptura",
-                onPressed: () {
-                  _guardarCapturaDeArticulos();
-                },
-                backgroundColor: Color.fromARGB(255, 243, 124, 33),
-                tooltip: "Guardar captura",
-                child: const Icon(Icons.save),
-              ),
-            ],
+      ),
+      floatingActionButton: Stack(
+        children: [
+          // Botón de "Guardado Instantáneo" pegado a la izquierda
+          Positioned(
+            left: 40, // Ajusta el valor para que quede casi pegado al borde
+            bottom: 20, // Mantener en la parte inferior
+            child: FloatingActionButton(
+              heroTag: "guardaInstantaneo",
+              onPressed: () {
+                _guardarCapturaDeArticulos(false); // false para no regresar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Guardado instantáneo realizado."),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              backgroundColor: Color.fromARGB(255, 243, 124, 33),
+              tooltip: "Guardar instantáneo",
+              child: const Icon(Icons.save_alt),
+            ),
           ),
-        ));
+
+          // Botones del lado derecho (Leer código de barras y Guardar y regresar)
+          Positioned(
+            right: 10, // Pegado a la derecha
+            bottom: 20, // Mantener en la parte inferior
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Botón de "Leer código de barras"
+                FloatingActionButton(
+                  heroTag: "leeArticulo",
+                  onPressed: () {
+                    _leerCodigoBarras();
+                  },
+                  backgroundColor: Color.fromARGB(255, 243, 124, 33),
+                  tooltip: "Leer código de barras",
+                  child: const Icon(FontAwesomeIcons.barcode),
+                ),
+                SizedBox(height: 20), // Espaciado entre los botones
+                // Botón de "Guardar y regresar"
+                FloatingActionButton(
+                  heroTag: "guardaCaptura",
+                  onPressed: () {
+                    _guardarCapturaDeArticulos(true); // true para regresar
+                  },
+                  backgroundColor: Color.fromARGB(255, 243, 124, 33),
+                  tooltip: "Guardar y regresar",
+                  child: const Icon(Icons.save),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation
+          .endFloat, // Mantener los botones principales a la derecha
+    );
   }
 }
