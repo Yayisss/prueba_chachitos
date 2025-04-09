@@ -1,3 +1,3 @@
 # prueba_chachitos
 
-A new Flutter project.
+Proyecto para toma de inventarios desde APP
